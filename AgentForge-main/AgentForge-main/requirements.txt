@@ -1,0 +1,46 @@
+langgraph
+langchain
+langchain-core
+langchain-anthropic
+langchain-openrouter
+langchain-openai
+langchain-google-genai
+langchain-community
+langchain-cerebras
+langgraph-checkpoint-sqlite
+langchain-nvidia-ai-endpoints
+langchain-groq
+langsmith
+python-dotenv
+pydantic
+pydantic-settings
+fastapi[standard]
+uvicorn
+
+#database
+sqlalchemy
+alembic
+psycopg[binary]
+
+redis
+mcp
+fastmcp
+email-validator
+httpx
+
+#auth (v0.11 minimal foundation)
+pyjwt
+bcrypt
+
+#async filesystem operations and uploads
+aiofiles
+
+#built in logging module
+loguru
+
+typing-extensions
+orjson
+pyyaml
+GitPython
+setuptools
+

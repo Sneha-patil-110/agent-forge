@@ -1,0 +1,21 @@
+AgentForge PostgreSQL migrations (v0.11+).
+
+Connection: env.py reads DATABASE_URL from backend.core.config.settings
+(sourced from the repo-root .env), or ALEMBIC_DATABASE_URL if set --
+used to point the same migration set at a different database, e.g. the
+test database, without editing alembic.ini.
+
+Models: backend/db/models/ (Base.metadata is imported directly by
+env.py for autogenerate; no model is registered anywhere else).
+
+Common commands, run from the repository root:
+
+    alembic revision --autogenerate -m "<description>"
+    alembic upgrade head
+    alembic downgrade -1
+
+    # apply the same migration set to a different database
+    ALEMBIC_DATABASE_URL=postgresql+psycopg://user:pass@host/db alembic upgrade head
+
+See docs/Database_Design.md for the full schema and how DatabaseSyncService
+keeps these tables in sync with workflow execution.

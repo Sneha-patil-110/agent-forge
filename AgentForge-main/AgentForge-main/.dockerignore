@@ -1,0 +1,55 @@
+# Frontend is not part of the backend image.
+frontend/
+
+# Secrets -- never bake credentials into the image.
+.env
+.env.*
+!.env.example
+
+# Local Python environments.
+venv/
+.venv/
+venv.bak/
+
+# Byte-compiled / cache artifacts.
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+
+# Node artifacts (repo root/frontend), never needed by the backend image.
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+
+# Git metadata.
+.git/
+.gitignore
+.gitattributes
+
+# Generated/runtime output -- must not be baked into the image.
+workspace/
+.agentforge/
+logs/
+summary/
+
+# Editor / tooling.
+.vscode/
+.claude/
+.idea/
+
+# Docs and misc project files not needed at runtime.
+docs/
+README.md
+LICENSE
+tests/
+
+# Container tooling itself.
+Dockerfile
+.dockerignore

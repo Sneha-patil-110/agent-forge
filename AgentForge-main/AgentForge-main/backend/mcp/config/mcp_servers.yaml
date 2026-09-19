@@ -1,0 +1,108 @@
+
+local-tools:
+  display_name: "Local Tools"
+  description: "A small local demo server (current_time, echo, word_count) for exercising MCP management end-to-end without external credentials."
+  enabled: true
+  transport: stdio
+  command: "${PYTHON}"
+  args: ["-m", "backend.mcp.example_servers.local_tools"]
+  connection_timeout: 10
+  tool_timeout: 30
+
+
+
+github:
+  display_name: "GitHub"
+  description: "Repository/code search, issues, PRs, commits, branches, releases via GitHub's hosted Copilot MCP endpoint."
+  enabled: true
+  transport: http
+  url: https://api.githubcopilot.com/mcp/
+  auth:
+    type: bearer
+    credential_env_var: GITHUB_MCP_TOKEN
+  connection_timeout: 10
+  tool_timeout: 30
+
+context7:
+  display_name: "Context7"
+  description: "Up-to-date framework/library documentation, APIs, examples, migration guides."
+  enabled: true
+  transport: http
+  url: https://mcp.context7.com/mcp
+  auth:
+    type: custom_header
+    header_name: CONTEXT7_API_KEY
+    credential_env_var: CONTEXT7_API_KEY
+  connection_timeout: 10
+  tool_timeout: 30
+
+playwright:
+  display_name: "Playwright"
+  description: "Browser automation: launch, click, type, screenshot, console/network logs, accessibility checks."
+  enabled: true
+  transport: stdio
+  command: "npx"
+  args: ["-y", "@playwright/mcp@latest"]
+  connection_timeout: 15
+  tool_timeout: 60
+
+filesystem:
+  display_name: "Filesystem"
+  description: >-
+    Read-only inspection (read/list/search/diff) of generated project output
+    under workspace/. First-party Python implementation (backend/mcp/example_servers/filesystem.py),
+    run via ${PYTHON} rather than npx -- deliberately implements only the read
+    tools below; actual writes always go through MaterializationService, never
+    this server.
+  enabled: true
+  transport: stdio
+  command: "${PYTHON}"
+  args: ["-m", "backend.mcp.example_servers.filesystem"]
+  connection_timeout: 10
+  tool_timeout: 30
+  capabilities:
+    read: [read_text_file, read_multiple_files, list_directory, list_directory_with_sizes, directory_tree, search_files, get_file_info, list_allowed_directories]
+
+postgres:
+  display_name: "PostgreSQL"
+  description: >-
+    Read-only schema inspection and query execution (SELECT/WITH/EXPLAIN/SHOW
+    only) against AgentForge's own database. First-party Python implementation
+    (backend/mcp/example_servers/postgres.py), run via ${PYTHON} rather than
+    npx -- uses SQLAlchemy directly, so no separate connection-string
+    normalization is needed.
+  enabled: true
+  transport: stdio
+  command: "${PYTHON}"
+  args: ["-m", "backend.mcp.example_servers.postgres"]
+  env:
+    DATABASE_URL: DATABASE_URL
+  connection_timeout: 10
+  tool_timeout: 30
+
+exa:
+  display_name: "Exa"
+  description: "Web research: implementation examples, framework/package comparisons, best practices."
+  enabled: true
+  transport: http
+  url: https://mcp.exa.ai/mcp
+  auth:
+    type: api_key
+    header_name: X-API-Key
+    credential_env_var: EXA_API_KEY
+  connection_timeout: 10
+  tool_timeout: 30
+
+sequential-thinking:
+  display_name: "Sequential Thinking"
+  description: >-
+    Structured multi-step reasoning for planning, debugging, and decomposition.
+    First-party Python implementation (backend/mcp/example_servers/sequential_thinking.py),
+    matching the official server's "sequentialthinking" tool schema, run via
+    ${PYTHON} rather than npx.
+  enabled: true
+  transport: stdio
+  command: "${PYTHON}"
+  args: ["-m", "backend.mcp.example_servers.sequential_thinking"]
+  connection_timeout: 10
+  tool_timeout: 30

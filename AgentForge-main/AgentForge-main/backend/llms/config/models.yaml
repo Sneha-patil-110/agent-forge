@@ -1,0 +1,53 @@
+analysis:
+  provider: google
+  model: gemini-2.0-flash-lite
+  temperature: 0.1
+  max_tokens: 4096
+
+planner:
+  provider: google
+  model: gemini-2.0-flash-lite
+  temperature: 0.1
+  max_tokens: 8192
+
+architect:
+  provider: google
+  model: gemini-2.0-flash-lite
+  temperature: 0.1
+  max_tokens: 12288
+
+developer:
+  provider: google
+  model: gemini-2.0-flash-lite
+  temperature: 0.0
+  max_tokens: 24576
+
+reviewer:
+  provider: google
+  model: gemini-2.0-flash-lite
+  temperature: 0.0
+  max_tokens: 8192
+
+documentation:
+  provider: google
+  model: gemini-2.0-flash-lite
+  temperature: 0.1
+  max_tokens: 6144
+
+summarizer:
+  provider: google
+  model: gemini-2.0-flash-lite
+  temperature: 0.0
+  max_tokens: 4096
+
+debugger:
+  provider: google
+  model: gemini-2.0-flash-lite
+  temperature: 0.0
+  max_tokens: 12288
+
+tester:
+  provider: google
+  model: gemini-2.0-flash-lite
+  temperature: 0.0
+  max_tokens: 8192
