@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     GOOGLE_API_KEY: str | None = None
     OPENROUTER_API_KEY: str | None = None
     GROQ_API_KEY: str | None = None
+    NVIDIA_API_KEY: str | None = None
+    CLOUDFLARE_API_TOKEN: str | None = None
+    CLOUDFLARE_ACCOUNT_ID: str | None = None
     ZAI_API_KEY: str | None = None
     CEREBRAS_API_KEY: str | None = None
     PERPLEXITY_API_KEY: str | None = None

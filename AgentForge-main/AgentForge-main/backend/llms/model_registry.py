@@ -51,12 +51,43 @@ class ModelRegistry:
         self,
         role: str,
     ) -> BaseChatModel:
+        return self.build_model(self._require_role_config(role), role=role)
+
+    def get_fallback_configs(self, role: str) -> list[dict[str, Any]]:
+        """Additional {provider, model, ...} configs to try, in order, if the
+        role's primary model invocation fails."""
+        model_config = self._require_role_config(role)
+
+        return list(model_config.get("fallbacks") or [])
+
+    def build_model(self, model_config: dict[str, Any], *, role: str) -> BaseChatModel:
+        provider_name = model_config.get("provider")
+        model_name = model_config.get("model")
+
+        if not provider_name:
+            raise ValueError(f"Provider is missing for role '{role}'.")
+
+        if not model_name:
+            raise ValueError(f"Model is missing for role '{role}'.")
+
+        provider = ModelFactory.create_provider(provider_name)
+
+        model_kwargs = {
+            key: value
+            for key, value in model_config.items()
+            if key not in {"provider", "model", "fallbacks"}
+        }
+
+        return provider.create_chat_model(
+            model=model_name,
+            **model_kwargs,
+        )
+
+    def _require_role_config(self, role: str) -> dict[str, Any]:
         model_config = self.config.get(role)
 
         if model_config is None:
-            available_roles = ", ".join(
-                self.config.keys()
-            )
+            available_roles = ", ".join(self.config.keys())
 
             raise ValueError(
                 f"No model configuration found for role "
@@ -64,38 +95,4 @@ class ModelRegistry:
                 f"{available_roles}"
             )
 
-        provider_name = model_config.get(
-            "provider"
-        )
-
-        model_name = model_config.get(
-            "model"
-        )
-
-        if not provider_name:
-            raise ValueError(
-                f"Provider is missing for role '{role}'."
-            )
-
-        if not model_name:
-            raise ValueError(
-                f"Model is missing for role '{role}'."
-            )
-
-        provider = ModelFactory.create_provider(
-            provider_name
-        )
-
-        model_kwargs = {
-            key: value
-            for key, value in model_config.items()
-            if key not in {
-                "provider",
-                "model",
-            }
-        }
-
-        return provider.create_chat_model(
-            model=model_name,
-            **model_kwargs,
-        )
+        return model_config

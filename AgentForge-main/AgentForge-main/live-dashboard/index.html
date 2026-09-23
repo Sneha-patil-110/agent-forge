@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgentForge Live Run</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#0b0e14; --surface:#141b24; --surface-2:#1b2430;
+    --text:#e7e4dc; --muted:#93897a; --border:#2a3340;
+    --ember-1:#ff7a45; --ember-2:#ffb03a;
+    --success:#4ade80; --warning:#fbbf24; --error:#f87171; --running:#60a5fa;
+    --success-bg:#132018; --warning-bg:#241d0f; --error-bg:#25151a; --running-bg:#101d2b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:"IBM Plex Sans",-apple-system,Segoe UI,sans-serif;
+    padding:32px 16px 48px; display:flex; justify-content:center;
+  }
+  .mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;}
+  .page{width:100%; max-width:900px; display:flex; flex-direction:column; gap:26px;}
+
+  .header{
+    background:linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+    border:1px solid var(--border); border-radius:14px; padding:26px; position:relative; overflow:hidden;
+  }
+  .header::before{
+    content:""; position:absolute; top:-60%; right:-15%; width:320px; height:320px;
+    background:radial-gradient(circle, var(--ember-2) 0%, transparent 70%); opacity:.14; pointer-events:none;
+  }
+  .eyebrow{
+    font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);
+    display:flex; align-items:center; gap:8px; margin:0 0 10px;
+  }
+  .dot{width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,var(--ember-1),var(--ember-2)); animation:pulse 1.6s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1;} 50%{opacity:.35;}}
+  h1{font-size:clamp(20px,4vw,27px); margin:0 0 16px; font-weight:700; letter-spacing:-.01em;}
+  .metarow{display:flex; flex-wrap:wrap; gap:10px;}
+  .pill{display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:999px; font-size:12.5px; font-weight:600;}
+  .pill.running{background:var(--running-bg); color:var(--running);}
+  .pill.completed{background:var(--success-bg); color:var(--success);}
+  .pill.issues{background:var(--warning-bg); color:var(--warning);}
+  .pill-neutral{background:var(--surface); border:1px solid var(--border); color:var(--muted); font-size:12.5px; padding:5px 12px; border-radius:999px;}
+  .pill-neutral .mono{color:var(--text);}
+
+  .section-label{
+    font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);
+    margin:0 0 14px; display:flex; align-items:center; gap:10px;
+  }
+  .section-label::after{content:""; flex:1; height:1px; background:var(--border);}
+
+  .timeline{display:flex; flex-direction:column;}
+  .stage{display:grid; grid-template-columns:28px 1fr; gap:14px;}
+  .rail{display:flex; flex-direction:column; align-items:center;}
+  .node{width:14px; height:14px; border-radius:50%; margin-top:6px; flex:none; border:2px solid var(--surface); box-shadow:0 0 0 1.5px currentColor;}
+  .node.pending{color:var(--border); background:transparent;}
+  .node.running{color:var(--running); background:var(--running); animation:pulse 1.2s ease-in-out infinite;}
+  .node.completed{color:var(--success); background:var(--success);}
+  .node.failed{color:var(--error); background:var(--error);}
+  .thread{width:2px; flex:1; background:var(--border); margin-top:4px; min-height:10px;}
+  .stage:last-child .thread{display:none;}
+  .stage-body{padding-bottom:18px;}
+  .stage-card{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:13px 16px; transition:border-color .3s;}
+  .stage-card.running{border-color:var(--running);}
+  .stage-card.failed{border-color:var(--error);}
+  .stage-top{display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap;}
+  .stage-name{font-weight:700; font-size:14.5px; text-transform:capitalize;}
+  .stage-time{font-size:11.5px; color:var(--muted);}
+  .stage-meta{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;}
+  .tag{font-size:11px; padding:3px 9px; border-radius:6px; background:var(--surface-2); color:var(--muted); border:1px solid var(--border);}
+  .stage-note{font-size:12px; color:var(--muted); margin-top:8px; line-height:1.5;}
+  .stage-note.error-note{color:var(--error);}
+  .output-panel{
+    margin-top:10px; padding:10px 12px; background:var(--surface-2); border-radius:8px;
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .output-row{display:flex; gap:10px; font-size:12px; line-height:1.5;}
+  .output-key{
+    flex:none; width:82px; color:var(--muted); text-transform:uppercase; font-size:10.5px;
+    letter-spacing:.04em; padding-top:1px;
+  }
+  .output-val{color:var(--text);}
+
+  .files{display:flex; flex-direction:column; gap:14px;}
+  .file{background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden;}
+  .file-head{display:flex; justify-content:space-between; align-items:center; padding:9px 14px; background:var(--surface-2); font-size:12.5px; font-weight:600;}
+  pre{margin:0; padding:13px 15px; overflow-x:auto; font-size:12.3px; line-height:1.55; max-height:340px;}
+
+  .empty{color:var(--muted); font-size:13px; padding:20px; text-align:center; border:1px dashed var(--border); border-radius:10px;}
+  footer{text-align:center; font-size:12px; color:var(--muted); padding-top:6px;}
+
+  .composer{
+    background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:14px; display:flex; gap:10px; align-items:flex-end;
+  }
+  .composer textarea{
+    flex:1; resize:none; background:var(--surface-2); color:var(--text);
+    border:1px solid var(--border); border-radius:8px; padding:10px 12px;
+    font-family:"IBM Plex Sans",sans-serif; font-size:13.5px; line-height:1.5;
+    min-height:44px; max-height:120px;
+  }
+  .composer textarea:focus{outline:none; border-color:var(--ember-1);}
+  .composer button{
+    background:linear-gradient(135deg,var(--ember-1),var(--ember-2)); color:#1a0f06;
+    border:none; border-radius:8px; padding:11px 20px; font-weight:700; font-size:13.5px;
+    cursor:pointer; white-space:nowrap; transition:opacity .2s;
+  }
+  .composer button:disabled{opacity:.5; cursor:default;}
+  .composer-error{color:var(--error); font-size:12.5px; margin-top:8px;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div>
+    <p class="section-label">Tell it what to build</p>
+    <div class="composer">
+      <textarea id="prompt-input" placeholder="e.g. Build a REST API for a todo list with SQLite storage"></textarea>
+      <button id="start-btn" onclick="startRun()">Start</button>
+    </div>
+    <div class="composer-error" id="composer-error" style="display:none;"></div>
+  </div>
+
+  <div class="header">
+    <p class="eyebrow"><span class="dot" id="live-dot"></span><span id="eyebrow-text">Watching a live run</span></p>
+    <h1 id="request-text">Build a simple command-line calculator app in Python that supports add, subtract, multiply, and divide.</h1>
+    <div class="metarow" id="meta-row">
+      <span class="pill-neutral">connecting…</span>
+    </div>
+  </div>
+
+  <div>
+    <p class="section-label">Pipeline</p>
+    <div class="timeline" id="timeline"></div>
+  </div>
+
+  <div>
+    <p class="section-label">Generated files</p>
+    <div class="files" id="files"><div class="empty">Nothing written yet — waiting on the Developer agent.</div></div>
+  </div>
+
+  <footer id="footer-text">polling /api/status every 1.5s</footer>
+</div>
+
+<script>
+const AGENT_ORDER = ["analysis","planner","architect","developer","tester","debugger","reviewer","documentation"];
+
+function esc(s){
+  return s.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+}
+
+function renderOutput(role, output){
+  const rows = [];
+  if (output.objective) rows.push(["objective", output.objective]);
+  if (output.requirements) rows.push(["requirements", output.requirements.join("; ")]);
+  if (output.tech_stack) rows.push(["tech stack", output.tech_stack.join(", ")]);
+  if (output.summary) rows.push(["summary", output.summary]);
+  if (output.strategy) rows.push(["strategy", output.strategy]);
+  if (output.tasks) rows.push(["tasks", output.tasks.join(" → ")]);
+  if (output.layers) rows.push(["layers", output.layers.join(", ")]);
+  if (output.tests) rows.push(["tests", output.tests]);
+  if (output.score !== undefined && output.score !== null) rows.push(["score", output.score]);
+  if (output.passed !== undefined) rows.push(["passed", output.passed ? "yes" : "no"]);
+
+  if (!rows.length) return "";
+
+  return `<div class="output-panel">` + rows.map(([k, v]) =>
+    `<div class="output-row"><span class="output-key">${esc(k)}</span><span class="output-val">${esc(String(v))}</span></div>`
+  ).join("") + `</div>`;
+}
+
+function statusLabel(s){
+  return {pending:"pending", running:"running…", completed:"done", failed:"failed"}[s] || s;
+}
+
+function render(data){
+  const dot = document.getElementById("live-dot");
+  const eyebrow = document.getElementById("eyebrow-text");
+  const meta = document.getElementById("meta-row");
+  const timeline = document.getElementById("timeline");
+  const filesEl = document.getElementById("files");
+
+  const anyRunning = data.agents.some(a => a.status === "running");
+  const anyFailed = data.agents.some(a => a.status === "failed") || data.infra_failure;
+  dot.style.display = anyRunning ? "inline-block" : "none";
+  eyebrow.textContent = anyRunning ? "Live — agent working now" : (data.final_status ? "Run finished" : "Waiting for next step");
+
+  let pills = "";
+  if (data.final_status) {
+    const cls = data.final_status === "completed" ? "completed" : "issues";
+    pills += `<span class="pill ${cls}">${esc(data.final_status)}</span>`;
+  } else if (anyFailed) {
+    pills += `<span class="pill issues">verification issue</span>`;
+  } else if (anyRunning) {
+    pills += `<span class="pill running">running</span>`;
+  }
+  const doneCount = data.agents.filter(a => a.status === "completed").length;
+  pills += `<span class="pill-neutral"><span class="mono">${doneCount}/${data.agents.length}</span> agents done</span>`;
+  if (data.materialized) {
+    pills += `<span class="pill-neutral"><span class="mono">${data.materialized.n}/${data.materialized.m}</span> files written</span>`;
+  }
+  if (data.http_calls.length) {
+    const providers = [...new Set(data.http_calls.map(h => h.provider))];
+    pills += `<span class="pill-neutral">${data.http_calls.length} real API calls · ${providers.join(", ")}</span>`;
+  }
+  meta.innerHTML = pills;
+
+  timeline.innerHTML = data.agents.map((a, i) => {
+    const dur = (a.started_at && a.completed_at) ?
+      Math.max(0, (new Date(a.completed_at.replace(" ","T")+"Z") - new Date(a.started_at.replace(" ","T")+"Z"))/1000) + "s" : "";
+    const noteHtml = a.error
+      ? `<div class="stage-note error-note">${esc(a.error)}</div>`
+      : (a.status === "completed" && dur ? `<div class="stage-note">took ${dur}</div>` : "");
+    const outputHtml = a.output ? renderOutput(a.role, a.output) : "";
+    return `
+      <div class="stage">
+        <div class="rail">
+          <div class="node ${a.status}"></div>
+          ${i < data.agents.length - 1 ? '<div class="thread"></div>' : ''}
+        </div>
+        <div class="stage-body">
+          <div class="stage-card ${a.status}">
+            <div class="stage-top">
+              <span class="stage-name">${esc(a.role)} <span style="color:var(--muted); font-weight:500; text-transform:none;">— ${statusLabel(a.status)}</span></span>
+              <span class="stage-time mono">${a.started_at ? esc(a.started_at.split(" ")[1]) : ""}</span>
+            </div>
+            <div class="stage-meta">
+              <span class="tag">${esc(a.provider || "-")}</span>
+              <span class="tag mono">${esc(a.model || "-")}</span>
+            </div>
+            ${noteHtml}
+            ${outputHtml}
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+
+  if (data.dependency_retries && data.dependency_retries.length) {
+    timeline.innerHTML += `
+      <div class="stage">
+        <div class="rail"><div class="node ${data.infra_failure ? 'failed' : 'running'}"></div></div>
+        <div class="stage-body">
+          <div class="stage-card ${data.infra_failure ? 'failed' : ''}">
+            <div class="stage-top"><span class="stage-name">dependency install</span></div>
+            <div class="stage-note ${data.infra_failure ? 'error-note' : ''}">
+              ${data.dependency_retries.length} attempt(s) so far.
+              ${data.infra_failure ? esc(data.infra_failure) : "retrying…"}
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  if (data.generated_files && data.generated_files.length) {
+    filesEl.innerHTML = data.generated_files.map(f => `
+      <div class="file">
+        <div class="file-head"><span>${esc(f.path)}</span></div>
+        <pre class="mono"><code>${esc(f.content)}</code></pre>
+      </div>`).join("");
+  } else {
+    filesEl.innerHTML = `<div class="empty">Nothing written yet — waiting on the Developer agent.</div>`;
+  }
+}
+
+async function tick(){
+  try {
+    const res = await fetch("/api/status", {cache: "no-store"});
+    const data = await res.json();
+    render(data);
+  } catch (e) {
+    document.getElementById("eyebrow-text").textContent = "Connection lost — retrying…";
+  }
+}
+
+async function startRun(){
+  const input = document.getElementById("prompt-input");
+  const btn = document.getElementById("start-btn");
+  const errEl = document.getElementById("composer-error");
+  const prompt = input.value.trim();
+
+  errEl.style.display = "none";
+  if (!prompt) {
+    errEl.textContent = "Type what you want built first.";
+    errEl.style.display = "block";
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Starting…";
+  try {
+    const res = await fetch("/api/start", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({prompt})
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      errEl.textContent = data.error || "Could not start the run.";
+      errEl.style.display = "block";
+    } else {
+      document.getElementById("request-text").textContent = prompt;
+      document.getElementById("files").innerHTML = '<div class="empty">Nothing written yet — waiting on the Developer agent.</div>';
+      input.value = "";
+      tick();
+    }
+  } catch (e) {
+    errEl.textContent = "Could not reach the server.";
+    errEl.style.display = "block";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Start";
+  }
+}
+
+tick();
+setInterval(tick, 1500);
+</script>
+</body>
+</html>

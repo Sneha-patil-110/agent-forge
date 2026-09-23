@@ -1,53 +1,117 @@
+# SPEED MODE: Groq + Gemini only, one fallback each, no NVIDIA/Cloudflare in
+# the primary path -- both are having timeout trouble in this environment
+# right now, and a 3-deep fallback chain pays their timeout cost before ever
+# reaching a provider that actually works. Groq and Gemini have been the
+# fastest, most reliable pair today. See /tmp/models.yaml.4provider.backup
+# for the full NVIDIA/Groq/Gemini/Cloudflare design to restore once NVIDIA
+# and Cloudflare are behaving normally again.
+
 analysis:
-  provider: google
-  model: gemini-2.0-flash-lite
+  provider: groq
+  model: openai/gpt-oss-20b
   temperature: 0.1
   max_tokens: 4096
+  fallbacks:
+    - provider: google
+      model: gemini-3.5-flash-lite
+      temperature: 0.1
+      max_tokens: 4096
+
+summarizer:
+  provider: groq
+  model: openai/gpt-oss-20b
+  temperature: 0.0
+  max_tokens: 4096
+  fallbacks:
+    - provider: google
+      model: gemini-3.5-flash-lite
+      temperature: 0.0
+      max_tokens: 4096
+
+tester:
+  provider: groq
+  model: openai/gpt-oss-20b
+  temperature: 0.0
+  max_tokens: 8192
+  fallbacks:
+    - provider: google
+      model: gemini-3.5-flash-lite
+      temperature: 0.0
+      max_tokens: 8192
 
 planner:
   provider: google
-  model: gemini-2.0-flash-lite
+  model: gemini-3.5-flash-lite
   temperature: 0.1
   max_tokens: 8192
-
-architect:
-  provider: google
-  model: gemini-2.0-flash-lite
-  temperature: 0.1
-  max_tokens: 12288
-
-developer:
-  provider: google
-  model: gemini-2.0-flash-lite
-  temperature: 0.0
-  max_tokens: 24576
+  fallbacks:
+    - provider: groq
+      model: openai/gpt-oss-20b
+      temperature: 0.1
+      max_tokens: 8192
 
 reviewer:
   provider: google
-  model: gemini-2.0-flash-lite
+  model: gemini-3.5-flash-lite
   temperature: 0.0
   max_tokens: 8192
+  fallbacks:
+    - provider: groq
+      model: openai/gpt-oss-20b
+      temperature: 0.0
+      max_tokens: 8192
 
 documentation:
   provider: google
-  model: gemini-2.0-flash-lite
+  model: gemini-3.5-flash-lite
   temperature: 0.1
   max_tokens: 6144
+  fallbacks:
+    - provider: groq
+      model: openai/gpt-oss-20b
+      temperature: 0.1
+      max_tokens: 6144
 
-summarizer:
+architect:
+  provider: groq
+  model: openai/gpt-oss-20b
+  temperature: 0.1
+  max_tokens: 2000
+  fallbacks:
+    - provider: google
+      model: gemini-3.5-flash-lite
+      temperature: 0.1
+      max_tokens: 2000
+    - provider: cloudflare
+      model: "@cf/qwen/qwen2.5-coder-32b-instruct"
+      temperature: 0.1
+      max_tokens: 2000
+
+developer:
   provider: google
-  model: gemini-2.0-flash-lite
+  model: gemini-3.5-flash-lite
   temperature: 0.0
-  max_tokens: 4096
+  max_tokens: 2500
+  # Primary is Gemini not Groq: by the time Developer runs, Groq's TPM budget
+  # has already been spent by Analysis+Architect (both Groq primary), so
+  # Groq is the *more* likely to fail here -- put it as fallback instead.
+  # NOTE: cloudflare/@cf/qwen/qwen2.5-coder-32b-instruct was tried as a 3rd
+  # fallback but its structured-output response shape breaks LangChain's
+  # AIMessage parsing (content comes back as a bare dict, not str/list) --
+  # a real incompatibility, not a rate limit. Dropped until that's fixed.
+  fallbacks:
+    - provider: groq
+      model: openai/gpt-oss-20b
+      temperature: 0.0
+      max_tokens: 2500
 
 debugger:
   provider: google
-  model: gemini-2.0-flash-lite
+  model: gemini-3.5-flash-lite
   temperature: 0.0
-  max_tokens: 12288
-
-tester:
-  provider: google
-  model: gemini-2.0-flash-lite
-  temperature: 0.0
-  max_tokens: 8192
+  max_tokens: 4096
+  fallbacks:
+    - provider: groq
+      model: openai/gpt-oss-20b
+      temperature: 0.0
+      max_tokens: 4096

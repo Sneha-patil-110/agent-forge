@@ -16,8 +16,8 @@ class GroqProvider(BaseLLMProvider):
     SUPPORTED_MODELS: list[str] = [
         "openai/gpt-oss-120b",
         "openai/gpt-oss-20b",
-        "llama-3.1-8b-instant",
-        "llama-3.3-70b-versatile",
+        "openai/gpt-oss-safeguard-20b",
+        "qwen/qwen3.8-27b",
         "whisper-large-v3",
     ]
 
@@ -46,6 +46,14 @@ class GroqProvider(BaseLLMProvider):
             "model": model,
             "api_key": settings.GROQ_API_KEY,
             "temperature": temperature,
+            # Fail fast instead of the SDK eating tens of seconds in its own
+            # backoff -- LLMService's cross-provider fallback is the faster
+            # recovery path. max_retries=0 matters specifically for 429s:
+            # Groq's client honors the server's Retry-After header (seen:
+            # 30-40s) on every retry it's allowed, so even max_retries=1
+            # still eats that full wait once. Zero retries skips it entirely.
+            "max_retries": 0,
+            "request_timeout": 20,
             **kwargs,
         }
 

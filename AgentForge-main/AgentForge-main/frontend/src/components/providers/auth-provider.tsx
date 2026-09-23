@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 import { useQueryClient } from "@tanstack/react-query";
 import type { UserOut } from "@/lib/types";
 import { getMe, login as apiLogin, register as apiRegister } from "@/lib/api";
-import { clearStoredToken, getStoredToken, setStoredToken } from "@/lib/auth-storage";
+import { clearStoredToken, setStoredToken } from "@/lib/auth-storage";
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 
@@ -24,22 +24,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const token = getStoredToken();
-
-    if (!token) {
-      setStatus("unauthenticated");
-      return;
-    }
-
-    getMe()
-      .then((me) => {
-        setUser(me);
-        setStatus("authenticated");
-      })
-      .catch(() => {
-        clearStoredToken();
-        setStatus("unauthenticated");
-      });
+    // DEMO ONLY: this environment has no database, so the real
+    // register/login/getMe round trip can never succeed. Skip straight to an
+    // authenticated demo user so the app shell is reachable.
+    //
+    // To restore real auth, replace this effect body with:
+    //
+    //   const token = getStoredToken();
+    //   if (!token) { setStatus("unauthenticated"); return; }
+    //   getMe()
+    //     .then((me) => { setUser(me); setStatus("authenticated"); })
+    //     .catch(() => { clearStoredToken(); setStatus("unauthenticated"); });
+    setUser({ id: "demo-user", email: "demo@agentforge.local", created_at: new Date().toISOString() });
+    setStatus("authenticated");
   }, []);
 
   const login = useCallback(

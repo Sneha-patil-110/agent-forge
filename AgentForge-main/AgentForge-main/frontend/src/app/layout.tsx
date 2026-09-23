@@ -32,7 +32,10 @@ export default function RootLayout({
       lang="en"
       className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="bg-ambient h-full flex flex-col overflow-hidden bg-background text-foreground">
+      <body
+        className="bg-ambient h-full flex flex-col overflow-hidden bg-background text-foreground"
+        suppressHydrationWarning
+      >
         <QueryProvider>
           <AuthProvider>
             <TooltipProvider delayDuration={200}>

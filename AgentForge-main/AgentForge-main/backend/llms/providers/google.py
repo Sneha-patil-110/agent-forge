@@ -17,7 +17,8 @@ class GoogleProvider(BaseLLMProvider):
     SUPPORTED_MODELS = [
         "gemini-2.5-pro",
         "gemini-2.5-flash",
-        "gemini-2.5-flash-lite",
+        "gemini-3.5-flash",
+        "gemini-3.5-flash-lite",
     ]
 
     def __init__(self) -> None:
@@ -42,6 +43,11 @@ class GoogleProvider(BaseLLMProvider):
             google_api_key=settings.GOOGLE_API_KEY,
             temperature=temperature,
             max_output_tokens=max_tokens,
+            # Fail fast on 503/high-demand instead of the SDK eating a minute
+            # in its own exponential backoff (seen: 1s,2s,4s,8s,16s chains) --
+            # LLMService's cross-provider fallback is the faster recovery path.
+            max_retries=0,
+            timeout=20,
             **kwargs,
         )
 

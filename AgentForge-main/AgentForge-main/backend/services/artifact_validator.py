@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import NamedTuple
 
 from backend.core.exceptions import PathValidationError
@@ -42,7 +42,13 @@ class ArtifactValidator:
                 continue
 
             raw_candidate = Path(raw_path)
-            if raw_candidate.is_absolute() or raw_candidate.root or raw_path.startswith("/") or raw_path.startswith("\\"):
+            if (
+                raw_candidate.is_absolute()
+                or raw_candidate.root
+                or raw_path.startswith("/")
+                or raw_path.startswith("\\")
+                or PureWindowsPath(raw_path).is_absolute()
+            ):
                 issues.append(ValidationIssue(raw_path, f"Path must be relative: {raw_path!r}"))
                 continue
 
