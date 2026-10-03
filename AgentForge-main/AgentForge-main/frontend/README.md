@@ -26,9 +26,9 @@ The Next.js client for AgentForge: a real-time workspace for watching and steeri
 
 ## Getting started
 
-```bash
+```powershell
 npm install
-cp .env.example .env.local      # NEXT_PUBLIC_API_URL defaults to http://localhost:8000
+copy .env.example .env.local
 npm run dev
 ```
 

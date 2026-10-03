@@ -38,16 +38,18 @@ class GoogleProvider(BaseLLMProvider):
                 f"Supported models: {self.SUPPORTED_MODELS}"
             )
 
+        google_api_key = settings.GOOGLE_API_KEY or settings.GEMINI_API_KEY
+
         return ChatGoogleGenerativeAI(
             model=model,
-            google_api_key=settings.GOOGLE_API_KEY,
+            google_api_key=google_api_key,
             temperature=temperature,
             max_output_tokens=max_tokens,
             # Fail fast on 503/high-demand instead of the SDK eating a minute
             # in its own exponential backoff (seen: 1s,2s,4s,8s,16s chains) --
             # LLMService's cross-provider fallback is the faster recovery path.
             max_retries=0,
-            timeout=20,
+            timeout=90,
             **kwargs,
         )
 
@@ -55,9 +57,11 @@ class GoogleProvider(BaseLLMProvider):
         return self.SUPPORTED_MODELS
 
     def validate_credentials(self) -> bool:
-        if not settings.GOOGLE_API_KEY:
+        google_api_key = settings.GOOGLE_API_KEY or settings.GEMINI_API_KEY
+
+        if not google_api_key:
             raise ConfigurationError(
-                "GOOGLE_API_KEY is missing from the environment."
+                "GOOGLE_API_KEY or GEMINI_API_KEY is missing from the environment."
             )
 
         return True

@@ -83,8 +83,14 @@ class DatabaseSyncService:
             return
 
         try:
+            sync_checkpoint = False
             with self.session_factory() as session:
-                if event.event_type in _SNAPSHOT_EVENTS or RunRepository(session).get(event.run_id) is None:
+                sync_checkpoint = (
+                    event.event_type in _SNAPSHOT_EVENTS
+                    or RunRepository(session).get(event.run_id) is None
+                )
+
+                if sync_checkpoint:
                     self._sync_snapshot(session, event.run_id)
 
                 if event.event_type == EventType.AGENT_INVOCATION_RECORDED:
@@ -102,6 +108,9 @@ class DatabaseSyncService:
                 )
 
                 session.commit()
+
+            if sync_checkpoint and self.checkpoint_service is not None:
+                self.checkpoint_service.sync_to_db(event.run_id)
 
         except Exception:
             logger.warning(
@@ -243,9 +252,6 @@ class DatabaseSyncService:
                 generating_agent="documentation",
                 status="generated" if doc.path in written_docs else "failed",
             )
-
-        if self.checkpoint_service is not None:
-            self.checkpoint_service.sync_to_db(run_id)
 
     def _sync_agent_invocation(self, session: Session, event: WorkflowEvent) -> None:
         metadata = event.metadata

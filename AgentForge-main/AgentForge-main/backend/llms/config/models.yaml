@@ -91,7 +91,7 @@ developer:
   provider: google
   model: gemini-3.5-flash-lite
   temperature: 0.0
-  max_tokens: 2500
+  max_tokens: 16384
   # Primary is Gemini not Groq: by the time Developer runs, Groq's TPM budget
   # has already been spent by Analysis+Architect (both Groq primary), so
   # Groq is the *more* likely to fail here -- put it as fallback instead.
@@ -103,7 +103,7 @@ developer:
     - provider: groq
       model: openai/gpt-oss-20b
       temperature: 0.0
-      max_tokens: 2500
+      max_tokens: 16384
 
 debugger:
   provider: google

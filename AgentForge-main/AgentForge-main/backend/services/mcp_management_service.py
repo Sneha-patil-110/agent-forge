@@ -9,6 +9,7 @@ from datetime import UTC, datetime
 from enum import Enum
 
 import httpx
+from mcp.shared.exceptions import MCPError
 
 from backend.core.exceptions import MCPConnectionError
 from backend.mcp.cache import save_tool_cache
@@ -147,7 +148,12 @@ class MCPManagementService:
             client = await asyncio.wait_for(
                 self.client_manager.get_client(server_name), timeout=config.connection_timeout
             )
-            await asyncio.wait_for(client.ping(), timeout=config.tool_timeout)
+            try:
+                await asyncio.wait_for(client.ping(), timeout=config.tool_timeout)
+            except MCPError as error:
+                if error.code != -32601:
+                    raise
+                await asyncio.wait_for(client.list_tools(), timeout=config.tool_timeout)
 
             version = None
             if client.initialize_result is not None and client.initialize_result.serverInfo is not None:

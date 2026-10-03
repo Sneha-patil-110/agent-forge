@@ -27,6 +27,7 @@ mcp
 fastmcp
 email-validator
 httpx
+gradio-client
 
 #auth (v0.11 minimal foundation)
 pyjwt

@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
 
     GOOGLE_API_KEY: str | None = None
+    GEMINI_API_KEY: str | None = None
     OPENROUTER_API_KEY: str | None = None
     GROQ_API_KEY: str | None = None
     NVIDIA_API_KEY: str | None = None

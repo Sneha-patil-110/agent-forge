@@ -4,6 +4,7 @@ import logging
 from typing import Iterator
 
 from sqlalchemy import Engine, create_engine
+from sqlalchemy.engine import make_url
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from backend.core.config import settings
@@ -22,7 +23,17 @@ def create_db_engine(database_url: str | None = None) -> Engine | None:
         return None
 
     try:
-        engine = create_engine(url, pool_pre_ping=True, future=True)
+        connect_args = (
+            {"timeout": 30}
+            if make_url(url).get_backend_name() == "sqlite"
+            else {}
+        )
+        engine = create_engine(
+            url,
+            pool_pre_ping=True,
+            future=True,
+            connect_args=connect_args,
+        )
         with engine.connect():
             pass
     except Exception:

@@ -88,14 +88,13 @@ Every step emits events over SSE, consumed live by the frontend workspace. Full 
 
 ### Backend
 
-```bash
-git clone https://github.com/Naman21036/AgentForge.git
-cd AgentForge
-python -m venv venv
-source venv/bin/activate        # venv\Scripts\activate on Windows
+```powershell
+git clone https://github.com/sarvadnya2030/AgentForge-multi-agent.git
+cd AgentForge-main
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-
-cp .env.example .env            # fill in the LLM provider keys you plan to use
+copy .env.example .env
 uvicorn backend.api.app:app --reload
 ```
 
@@ -103,10 +102,10 @@ API served at `http://127.0.0.1:8000`; interactive docs at `/docs`.
 
 ### Frontend
 
-```bash
+```powershell
 cd frontend
 npm install
-cp .env.example .env.local      # NEXT_PUBLIC_API_URL defaults to http://localhost:8000
+copy .env.example .env.local
 npm run dev
 ```
 
